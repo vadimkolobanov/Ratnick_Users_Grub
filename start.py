@@ -14,6 +14,16 @@ client.start()
 
 
 async def process_channel(client, channel_id):
+    """
+    Асинхронно обрабатывает канал, получая сущность с использованием предоставленного
+    идентификатора канала, вставляя канал и ссылку в базу данных и извлекая
+    участников чата. Если происходит ошибка, она регистрируется, и цель завершения
+    по ссылке обновляется.
+
+    :param client: Клиент, используемый для взаимодействия с каналом
+    :param channel_id: Уникальный идентификатор канала
+    :return: None
+    """
     try:
 
         channel = await client.get_entity(channel_id)
@@ -23,7 +33,7 @@ async def process_channel(client, channel_id):
         await update_target_completed_by_link(channel_id)
         await insert_channel(channel=channel, link=channel_id)
     except Exception as e:
-        logging.error(f"Error processing channel {channel_id}: {e}")
+        logging.error(f"Ошибка обработки канала {channel_id}: {e}")
         await update_target_completed_by_link(channel_id)
 
 
@@ -33,20 +43,17 @@ async def main(client):
         if new_target:
             try:
                 await asyncio.sleep(random.randint(2, 10))
-
                 await process_channel(client, new_target[0])
             except Exception as e:
-                logging.error(f"Error processing new target {new_target[0]}: {e}")
+                logging.error(f"Ошибка отбработки новой задачи {new_target[0]}: {e}")
         else:
-
             try:
                 await asyncio.sleep(random.randint(5, 10))
                 channel_list = await get_channels()
-
                 tasks = [process_channel(client, channel[2]) for channel in channel_list]
                 await asyncio.gather(*tasks)
             except Exception as e:
-                logging.error(f"Error processing channel list: {e}")
+                logging.error(f"Ошибка отработки списка готовых каналов {e}")
 
 
 if __name__ == "__main__":

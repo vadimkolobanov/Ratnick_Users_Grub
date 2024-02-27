@@ -1,8 +1,10 @@
 import os
+
 from dotenv import load_dotenv
 
-# Загрузка переменных окружения из .env файла
 load_dotenv()
+# Загрузка переменных окружения из .env файла
+
 
 # Получение значения DSN
 DATABASE_URL = os.getenv("DATABASE_URL")

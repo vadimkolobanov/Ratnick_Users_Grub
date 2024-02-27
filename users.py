@@ -4,14 +4,23 @@ from tqdm.asyncio import tqdm_asyncio
 
 from general_file import DATABASE_URL
 
+
 async def get_chat_participants(client, channel):
+    """
+    Асинхронно получает подписчиком Телеграм-чата и вносит часть данных в базу
+
+    Args:
+        client: Используется для доступа к чату Telegram
+        channel: Чат для доступа к конкретному чату Telegram
+    Returns:
+        None
+    """
     try:
-        async with asyncpg.create_pool(DATABASE_URL) as pool:
+        async with asyncpg.create_pool(DATABASE_URL, max_size=10) as pool:
             async with pool.acquire() as conn:
                 async for participant in tqdm_asyncio(
-                    client.iter_participants(channel),
-                    desc=f'Сбор пользователей {channel.title}',
-                ):
+                        client.iter_participants(channel),
+                        desc=f'Сбор пользователей {channel.title}',):
                     first_name = participant.first_name if participant.first_name else 'Не указано'
                     username = participant.username if participant.username else 'Не указано'
                     last_name = participant.last_name if participant.last_name else 'Не указано'

@@ -1,0 +1,30 @@
+version: '3'
+services:
+  user_grub:
+    container_name: RatNick
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - 8001:8000
+    environment:
+      - DATABASE_URL=postgresql://gen_user:eb%21G%7D3CyH%3Fz%3E%5Eh@85.193.93.225:5432/default_db
+      - API_ID=29475003
+      - API_HASH=aedc316932db2a34ba70e2e33554b3ac
+      - USERNAME=Ratnick
+      - BOT_TOKEN=3
+
+  message_grub:
+    build:
+      context: ..\Ratnick_Messgae_Grub
+      dockerfile: Dockerfile
+    ports:
+      - 8002:8000
+
+
+  deanon_module:
+    build:
+      context: ..\RatNick_Deanon_Module
+      dockerfile: Dockerfile
+    ports:
+      - 8003:8000
