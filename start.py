@@ -1,10 +1,12 @@
 import asyncio
 import logging
 import random
+import time
 
 from telethon import TelegramClient
 import users
 from db_func import *
+from decorators import retry, rate_limit
 from general_file import *
 
 username, api_id, api_hash = USERNAME, API_ID, API_HASH
@@ -13,30 +15,21 @@ client = TelegramClient(username, api_id, api_hash)
 client.start()
 
 
+@retry(max_retries=3, delay=1)
 async def process_channel(client, channel_id):
-    """
-    Асинхронно обрабатывает канал, получая сущность с использованием предоставленного
-    идентификатора канала, вставляя канал и ссылку в базу данных и извлекая
-    участников чата. Если происходит ошибка, она регистрируется, и цель завершения
-    по ссылке обновляется.
-
-    :param client: Клиент, используемый для взаимодействия с каналом
-    :param channel_id: Уникальный идентификатор канала
-    :return: None
-    """
     try:
-
         channel = await client.get_entity(channel_id)
 
-        await insert_channel(channel=channel, link=channel_id)
+        await insert_channel(channel, channel_id)
         await users.get_chat_participants(channel=channel, client=client)
         await update_target_completed_by_link(channel_id)
-        await insert_channel(channel=channel, link=channel_id)
+        await insert_channel(channel, channel_id)
     except Exception as e:
         logging.error(f"Ошибка обработки канала {channel_id}: {e}")
         await update_target_completed_by_link(channel_id)
 
 
+@rate_limit(max_calls=5, period=60)
 async def main(client):
     while True:
         new_target = await select_target()
