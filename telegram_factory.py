@@ -2,6 +2,9 @@ from telethon import TelegramClient
 from typing import Awaitable, Optional, List
 from telethon.tl.types import Message, User, Channel
 from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError
+import logging
+
+logging.basicConfig(level=logging.INFO)
 
 
 class TelegramAPI:
@@ -24,10 +27,13 @@ class TelegramAPI:
         """
         try:
             await self.client.start()
+            logging.info('Авторизация в Телеграм успешна')
         except SessionPasswordNeededError:
+            logging.warning('Необходим облачный пароль')
             password = input("Введите пароль для сеанса: ")
             await self.client.start(password=password)
         except PhoneCodeInvalidError:
+            logging.error('Неверный код авторизации')
             code = input("Введите корректный код подтверждения телефона: ")
             await self.client.sign_in(code=code)
 
@@ -42,7 +48,7 @@ class TelegramAPI:
             id_of_last_message_in_chat = await self._get_id_of_last_message(chat_id)
             return await self.client.get_messages(chat_id, min_id=5245, max_id=id_of_last_message_in_chat)
         except Exception as e:
-            print(f"Ошибка при получении сообщений: {e}")
+            logging.error(f"Ошибка при получении сообщений: {e}")
             return []
 
     async def _get_id_of_last_message(self, chat_id: int) -> Optional[int]:
@@ -61,8 +67,12 @@ class TelegramAPI:
             else:
                 return None
         except Exception as e:
-            print(f"Ошибка при получении последнего сообщения: {e}")
+            logging.error(f"Ошибка при получении последнего сообщения: {e}")
             return None
+        except IndexError:
+            logging.error('Получен пустой список сообщений для поиска последнего ID')
+            message_id = 1
+            return message_id
 
     async def get_channel_data_from_link(self, telegram_chat_link: str) -> Channel:
         """
@@ -74,8 +84,7 @@ class TelegramAPI:
         try:
             return await self.client.get_entity(telegram_chat_link)
         except Exception as e:
-            print(f"Ошибка при получении данных канала: {e}")
-            return None
+            logging.error(f"Ошибка при получении данных канала: {e}")
 
     async def get_users(self, chat_id: int) -> List[User]:
         """
@@ -88,20 +97,8 @@ class TelegramAPI:
             data = await self.client.get_participants(chat_id)
             return data
         except Exception as e:
-            print(f"Ошибка при получении пользователей: {e}")
+            logging.error(f"Ошибка при получении пользователей: {e}")
             return []
-
-    async def update_chat_info(self, chat_id: int) -> None:
-        """
-        Обновляет информацию о чате.
-
-        :param chat_id: Идентификатор чата.
-        """
-        try:
-            # Логика обновления информации о чате
-            pass
-        except Exception as e:
-            print(f"Ошибка при обновлении информации о чате: {e}")
 
     async def stop(self) -> None:
         """
@@ -110,4 +107,4 @@ class TelegramAPI:
         try:
             await self.client.disconnect()
         except Exception as e:
-            print(f"Ошибка при остановке клиента: {e}")
+            logging.error(f"Ошибка при остановке клиента: {e}")
