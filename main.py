@@ -5,21 +5,18 @@ from telegram import TelegramAPI
 
 async def main():
     telegram_api = TelegramAPI(API_ID, API_HASH)
-
-    # Авторизация
     await telegram_api.auth()
-
-    # Получение сообщений из чата
-    chat_id = 'your_chat_id'
-    messages = await telegram_api.get_messages(chat_id)
-    print(messages)
+    all_info_about_chat_raw = await telegram_api.get_channel_data_from_link('https://t.me/Python_parsing_chat')
+    all_messages_in_chat_raw = await telegram_api.get_messages(all_info_about_chat_raw.id)
+    for message in all_messages_in_chat_raw:
+        print(message)
 
     # Получение пользователей из чата
-    users = await telegram_api.get_users(chat_id)
-    print(users)
+    all_users_in_chat_raw = await telegram_api.get_users(all_info_about_chat_raw.id)
+
 
     # Обновление информации о чате
-    await telegram_api.update_chat_info(chat_id)
+
 
     # Остановка клиента TelegramClient
     await telegram_api.stop()

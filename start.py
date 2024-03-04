@@ -7,12 +7,8 @@ from telethon import TelegramClient
 import users
 from db_func import *
 from decorators import retry, rate_limit
-from general_file import *
 
-username, api_id, api_hash = USERNAME, API_ID, API_HASH
 
-client = TelegramClient(username, api_id, api_hash)
-client.start()
 
 
 @retry(max_retries=3, delay=1)
