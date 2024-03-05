@@ -13,9 +13,15 @@ async def main():
 
     await telegram_api.auth()
     chat_https_link = 'https://t.me/learnpythonforfun_chat'
+
     all_info_about_chat_raw = await telegram_api.get_channel_data_from_link(chat_https_link)
-    all_messages_in_chat_raw = await telegram_api.get_messages(all_info_about_chat_raw.id)
-    all_users_in_chat_raw = await telegram_api.get_users(all_info_about_chat_raw.id)
+    tasks = [
+        telegram_api.get_messages(all_info_about_chat_raw.id),
+        telegram_api.get_users(all_info_about_chat_raw.id)
+    ]
+    result = await asyncio.gather(*tasks)
+    all_messages_in_chat_raw = result[0]
+    all_users_in_chat_raw = result[1]
     process_messages(all_messages_in_chat_raw, db, all_info_about_chat_raw)
     process_users(all_users_in_chat_raw, all_info_about_chat_raw, db)
     process_channels(all_info_about_chat_raw, db, chat_https_link)
