@@ -1,4 +1,6 @@
+import logging
 import sqlite3
+from sqlite3 import IntegrityError
 
 
 class Database:
@@ -27,7 +29,8 @@ class Database:
                 status TEXT,
                 channel_id INTEGER,
                 FOREIGN KEY (photo_id) REFERENCES ProfilePhotos(id),
-                FOREIGN KEY (channel_id) REFERENCES Channels(id)
+                FOREIGN KEY (channel_id) REFERENCES Channels(id),
+                UNIQUE (channel_id, id)
             )
         ''')
 
@@ -45,7 +48,8 @@ class Database:
             CREATE TABLE IF NOT EXISTS Channels (
                 id INTEGER PRIMARY KEY,
                 name TEXT,
-                link TEXT
+                link TEXT,
+                date_created DATETIME
             )
         ''')
 
@@ -67,7 +71,8 @@ class Database:
                 forwards INTEGER,
                 FOREIGN KEY (user_id) REFERENCES Users(id),
                 FOREIGN KEY (channel_id) REFERENCES Channels(id),
-                FOREIGN KEY (reply_to) REFERENCES Messages(id)
+                FOREIGN KEY (reply_to) REFERENCES Messages(id),
+                UNIQUE (channel_id, id)
             )
         ''')
 
@@ -89,7 +94,32 @@ class Database:
                        (user_id, access_hash, first_name, last_name, username, phone, photo_id, status, channel_id))
         self.connection.commit()
 
+    def insert_channel(self, channel_id, name, link, date_created):
+        query = '''
+            INSERT OR IGNORE INTO Channels (id, name, link, date_created)
+            VALUES (?, ?, ?, ?)
+        '''
+        cursor = self.connection.cursor()
+        cursor.execute(query, (channel_id, name, link, date_created))
+        self.connection.commit()
 
+    def insert_message(self, message_id, user_id, channel_id, date, message, out, mentioned, media_unread, silent, post,
+                       reply_to, views, forwards):
+        query = '''
+            INSERT INTO Messages (id, user_id, channel_id, date, message, out, mentioned, media_unread, silent, post, reply_to, views, forwards)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        '''
+        date_str = date.strftime('%Y-%m-%d %H:%M:%S')
+
+        cursor = self.connection.cursor()
+        try:
+            cursor.execute(query, (
+                message_id, user_id, channel_id, date_str, message, out, mentioned, media_unread, silent, post, reply_to,
+                views,
+                forwards))
+        except IntegrityError:
+            logging.warning('Обнаружено дублирование значений')
+        self.connection.commit()
 
     def close(self):
         # Закрытие соединения с базой данных

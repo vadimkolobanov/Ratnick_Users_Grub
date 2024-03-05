@@ -1,7 +1,7 @@
 import asyncio
 from config import API_ID, API_HASH
 from database import Database
-from raw_telegram_data_sort import process_messages, process_users
+from push_data_in_database import process_messages, process_users, process_channels
 from telegram_factory import TelegramAPI
 
 
@@ -10,17 +10,16 @@ async def main():
     db = Database('mydatabase.db')
     db.connect()
     db.create_tables()
-    db.close()
+
     await telegram_api.auth()
-    all_info_about_chat_raw = await telegram_api.get_channel_data_from_link('https://t.me/Python_parsing_chat')
+    chat_https_link = 'https://t.me/learnpythonforfun_chat'
+    all_info_about_chat_raw = await telegram_api.get_channel_data_from_link(chat_https_link)
     all_messages_in_chat_raw = await telegram_api.get_messages(all_info_about_chat_raw.id)
     all_users_in_chat_raw = await telegram_api.get_users(all_info_about_chat_raw.id)
-    process_messages(all_messages_in_chat_raw)
+    process_messages(all_messages_in_chat_raw, db, all_info_about_chat_raw)
     process_users(all_users_in_chat_raw, all_info_about_chat_raw, db)
-
-    # Обновление информации о чате
-
-    # Остановка клиента TelegramClient
+    process_channels(all_info_about_chat_raw, db, chat_https_link)
+    db.close()
     await telegram_api.stop()
 
 
