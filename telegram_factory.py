@@ -46,7 +46,7 @@ class TelegramAPI:
         """
         try:
             id_of_last_message_in_chat = await self._get_id_of_last_message(chat_id)
-            return await self.client.get_messages(chat_id, min_id=0, max_id=id_of_last_message_in_chat)
+            return await self.client.get_messages(chat_id, min_id=0, max_id=id_of_last_message_in_chat,limit=250)
         except Exception as e:
             logging.error(f"Ошибка при получении сообщений: {e}")
             return []

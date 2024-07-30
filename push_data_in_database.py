@@ -1,10 +1,14 @@
+import logging
+
+from tqdm import tqdm
+
 from raw_telegram_data_sort import MessageProcessor, UserProcessor, ChannelProcessor
 
 
 def process_messages(message_list, database_instance, chat_data):
     channel_id = chat_data.id
     database_instance.connect()
-    for message in message_list:
+    for message in tqdm(message_list, total=len(message_list), desc='Processing messages'):
         processor = MessageProcessor(message)
         message_id = processor.get_message_id()
         sender_id = processor.get_sender_id()
@@ -29,7 +33,7 @@ def process_messages(message_list, database_instance, chat_data):
 
 def process_users(user_list, channel_data, database_instance):
     database_instance.connect()
-    for user_data in user_list:
+    for user_data in tqdm(user_list, total=len(user_list), desc='Processing users'):
         processor = UserProcessor(user_data)
         user_id = processor.get_user_id()
         access_hash = processor.get_access_hash()
@@ -50,6 +54,6 @@ def process_channels(channel_data, database_instance, link):
     channel_id = processor.get_channel_id()
     channel_name = processor.get_channel_name()
     channel_date_created = processor.get_channel_date_created()
-
+    logging.info('Вход в обработку данных о Channels')
     database_instance.insert_channel(channel_id=channel_id, name=channel_name, date_created=channel_date_created,
                                      link=link)
