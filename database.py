@@ -139,10 +139,9 @@ class Database:
         query = 'SELECT link FROM general_targetsource WHERE completed = FALSE'
         cursor = self.connection.cursor()
         cursor.execute(query)
-        data = cursor.fetchall()
-        print(data)
+        data = cursor.fetchone()
         if data:
-            return cursor.fetchone()[0]
+            return data[0]
         else: return None
 
     def get_channel_for_update_raw(self):

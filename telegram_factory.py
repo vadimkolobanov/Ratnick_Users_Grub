@@ -1,5 +1,5 @@
 from telethon import TelegramClient
-from typing import Awaitable, Optional, List
+from typing import Awaitable, Optional, List, Dict, Any
 from telethon.tl.types import Message, User, Channel
 from telethon.errors import SessionPasswordNeededError, PhoneCodeInvalidError
 import logging
@@ -86,7 +86,7 @@ class TelegramAPI:
         except Exception as e:
             logging.error(f"Ошибка при получении данных канала: {e}")
 
-    async def get_users(self, chat_id: int) -> List[User]:
+    async def get_users(self, chat_id: int) -> list[dict[str, str | int | Any]] | list[Any]:
         """
         Получает список пользователей в указанном чате.
 
@@ -94,8 +94,19 @@ class TelegramAPI:
         :return: Список объектов User, представляющих пользователей в чате.
         """
         try:
-            data = await self.client.get_participants(chat_id)
-            return data
+            users = []
+            async for user in self.client.iter_participants(chat_id):
+                users.append({
+                    'id': user.id,
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'username': user.username,
+                    'phone': user.phone,
+                    'access_hash': user.access_hash,
+                    'status': str(user.status),
+                    'chat_id': chat_id
+                })
+            return users
         except Exception as e:
             logging.error(f"Ошибка при получении пользователей: {e}")
             return []
