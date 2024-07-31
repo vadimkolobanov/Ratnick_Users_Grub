@@ -1,5 +1,6 @@
 import logging
 import sqlite3
+from datetime import datetime
 from sqlite3 import IntegrityError
 
 import psycopg2
@@ -142,7 +143,8 @@ class Database:
         data = cursor.fetchone()
         if data:
             return data[0]
-        else: return None
+        else:
+            return None
 
     def get_channel_for_update_raw(self):
         query = '''
@@ -156,8 +158,21 @@ class Database:
             cursor.execute(query)
             row = cursor.fetchone()
             if row:
-                return row[0]
+                link = row[0]
+                self.update_last_users_updated(link)
+                return link
         return None
+
+    def update_last_users_updated(self, link):
+        query = '''
+        UPDATE general_channels 
+        SET last_users_updated = %s
+        WHERE link = %s
+        '''
+        current_time = datetime.utcnow()
+        with self.connection.cursor() as cursor:
+            cursor.execute(query, (current_time, link))
+            self.connection.commit()
 
     def close_target(self, link):
         query = 'UPDATE general_targetsource SET completed = TRUE WHERE link = %s AND completed = FALSE'
@@ -165,6 +180,7 @@ class Database:
         cursor.execute(query, (link,))
         self.connection.commit()
         return cursor.rowcount
+
     def insert_message(self, message_id, user_id, channel_id, date, message, out, mentioned, media_unread, silent, post,
                        reply_to, views, forwards):
         if not self.user_exists(user_id):

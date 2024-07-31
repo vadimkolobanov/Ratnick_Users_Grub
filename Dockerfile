@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.12-alpine
 
 COPY requirements.txt /app/
 WORKDIR /app
@@ -8,6 +8,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . /app/
 
 WORKDIR /app
-CMD ["python", "start.py"]
+CMD ["python", "main.py"]
 LABEL authors="Marlen"
 
