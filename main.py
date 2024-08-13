@@ -34,7 +34,7 @@ async def main():
         process_channels(all_info_about_chat_raw, db, chat_https_link)
         try:
             headers = {'Content-Type': 'application/json'}
-            response = requests.post('http://push-users:8080/insert-users', headers=headers, data=json.dumps(all_users_in_chat_raw))
+            response = requests.post('http://localhost:8080/insert-users', headers=headers, data=json.dumps(all_users_in_chat_raw))
             if response.status_code == 200:
                 print("Data sent successfully")
             else:
